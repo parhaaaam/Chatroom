@@ -158,37 +158,7 @@ def create_payment(request):
                     response.status_code = 418
                     logger.error(e)
                     return response
-                else:
-                    post_params = {
-                        "payment_amount":
-                            decimal.Decimal(transaction.amount).quantize(
-                                decimal.Decimal('0.00000001'),
-                                rounding=decimal.ROUND_DOWN).normalize(),
-                        "payment_address":
-                            transaction.address,
-                        "payment_qr":
-                            transaction.qrcode_url,
-                        "gateway_status":
-                            transaction.status_url,
-                        "policy_cover":
-                            policy.cover,
-                        "exchange_name":
-                            policy.exchange.name,
-                        "date_of_formating":
-                            policy.request_date.date(),
-                        "currency":
-                            currency
-                    }
 
-                    response = JsonResponse(post_params)
-                    return response
-
-                    message = "Payment Exist"
-                    response = JsonResponse({
-                        'status': 'false',
-                        'message': message
-                    })
-                    return response
             elif payment.status == PaymentStatus.PENDING:
                 logger.info('status Pending, do nothing')
                 transaction = policy.payment_id
