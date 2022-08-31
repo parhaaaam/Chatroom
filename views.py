@@ -48,19 +48,6 @@ def create_payment(request):
             payment.id
         except Exception as e:
 
-            post_params = {
-                'amount': policy.fee,
-                'currency1': 'BTC',
-                'currency2': currency,
-                'buyer_email':
-                    request.user.email,
-                'item_name': 'Policy for ' + policy.exchange.name,
-                'item_number': policy.id
-            }
-            try:
-                client = CryptoPayments(public_key, private_key)
-                transaction = client.createTransaction(post_params)
-                logger.debug(transaction)
                 if len(transaction) == 0:
                     raise Exception
             except Exception as e:
@@ -70,30 +57,14 @@ def create_payment(request):
                 return JsonResponse(responseData)
 
             try:
-                try:
-                    payment = UserPayments(
-                        status=0,
-                        update_date=datetime.datetime.now(),
-                        amount=transaction.amount,
-                        address=transaction.address,
-                        payment=transaction.txn_id,
-                        confirms_needed=transaction.confirms_needed,
-                        timeout=transaction.timeout,
-                        status_url=transaction.status_url,
-                        qrcode_url=transaction.qrcode_url,
-                        currency=currency)
+                default_email = os.environ.get('DJANGO_EMAIL_DEFAULT_EMAIL')
+                subject = "Website: You’re one step away from being secured"
+                message = render_to_string('first_email.html', {'user': policy.user, 'payment': payment})
+                send_mail(subject, message, default_email, [policy.user.email])
 
-                    try:
-                        default_email = os.environ.get('DJANGO_EMAIL_DEFAULT_EMAIL')
-                        subject = "Website: You’re one step away from being secured"
-                        message = render_to_string('first_email.html', {'user': policy.user, 'payment': payment})
-                        send_mail(subject, message, default_email, [policy.user.email])
-                    except Exception as e:
-                        logger.error('Error on sending first email: ', e)
-
-                except Exception as e:
-                    logger.error(e)
-                    responseData = {
+            except Exception as e:
+                logger.error(e)
+                responseData = {
                         'error': True,
                         'message': 'Payment Gateway Error'
                     }
