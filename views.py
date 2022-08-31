@@ -14,7 +14,7 @@ def map_reduce_task(request, ids):
         return HttpResponseRedirect("/")
     else:
         for register in registers:
-            if ids:  
+            if ids:
                 objects = register.objects.filter(id__in=ids).values_list("id", flat=True)
             else:
                 objects = register.objects.all().values_list("id", flat=True)
@@ -24,10 +24,10 @@ def map_reduce_task(request, ids):
 
             def chunks(objects, length):
                 for i in xrange(0, len(objects), length):
-                    yield objects[i:i+length]
+                    yield objects[i:i + length]
 
             for chunk in chunks(objects, 20):
-                countdown = 5*t
+                countdown = 5 * t
                 t += 1
                 tasks_map.append(request_by_mapper(register, chunk, countdown, datetime.now()))
         g = group(*tasks_map)
@@ -53,14 +53,14 @@ def create_payment(request):
                 'currency1': 'BTC',
                 'currency2': currency,
                 'buyer_email':
-                    request.user.email, 
+                    request.user.email,
                 'item_name': 'Policy for ' + policy.exchange.name,
                 'item_number': policy.id
             }
             try:
                 client = CryptoPayments(public_key, private_key)
                 transaction = client.createTransaction(post_params)
-                logger.debug(transaction)  
+                logger.debug(transaction)
                 if len(transaction) == 0:
                     raise Exception
             except Exception as e:
@@ -144,7 +144,7 @@ def create_payment(request):
                     'currency1': 'BTC',
                     'currency2': currency,
                     'buyer_email':
-                        request.user.email, 
+                        request.user.email,
                     'item_name': 'Policy for ' + policy.exchange.name,
                     'item_number': policy.id
                 }
@@ -253,7 +253,7 @@ def create_payment(request):
             response = JsonResponse(post_params)
             return response
 
-        
+
 @staff_member_required
 def backup_to_csv(request):
     data = {}
@@ -332,7 +332,7 @@ def backup_to_csv(request):
         header = [
             'Policy_number', 'Policy_date', 'Name', 'Surname', 'E-mail',
             'Policy_start_date', 'Policy_expiry_date', 'Number_of_days',
-            'Crypto_exchange_name', 'Limit_BTC',  'Insured_Limit', 'Premium_paid_BTC',
+            'Crypto_exchange_name', 'Limit_BTC', 'Insured_Limit', 'Premium_paid_BTC',
             'User_paid', 'User_currency', 'Premium_rate_%',
             'Premium_payment_date', 'Outstanding_claim_BTC', 'Date_of_claim',
             'Paid_claim_BTC', 'Date_of_claim_payment',
@@ -351,12 +351,13 @@ def backup_to_csv(request):
         except Exception:
             return response
 
+
 @csrf_protect
 @login_required
 def dashboard(request):
     user = get_object_or_404(
         UserProfile, django_user_id=request.user.id
-    )  
+    )
 
     try:
         userPartner = Partner.objects.get(
@@ -393,7 +394,6 @@ def dashboard(request):
 
     for current_policy_number_json in found_policy_numbers:
         policy_numbers.append(current_policy_number_json)
-
 
     try:
         found_start_dates = insurancy_policy_info.values('start_date')
@@ -527,7 +527,6 @@ def dashboard(request):
                 "An error has occured while trying to get exchange tag.\
                 Reason: " + str(error))
 
-
         try:
             policy_status_numerical_value = policy_statuses[current_id][
                 'status']
@@ -550,9 +549,9 @@ def dashboard(request):
                 "An error has occured while trying to get InsuranceCase.\
                 Reason: " + str(error))
         if start_dates[current_id]['start_date']:
-            days = expiration_dates[current_id]['expiration_date'] -\
-                timezone.make_aware(
-                datetime.datetime.now())
+            days = expiration_dates[current_id]['expiration_date'] - \
+                   timezone.make_aware(
+                       datetime.datetime.now())
             if policy_status_numerical_value == 2 and (
                     days < datetime.timedelta(days=10)):
                 expired_soon = True
@@ -569,33 +568,32 @@ def dashboard(request):
         context_policies = {
             'id': (policy_numbers[current_id])['id'],
             'policy_number':
-            context_policy_number,
+                context_policy_number,
             'insurance_period':
-            context_insurance_period,
+                context_insurance_period,
             'limit':
-            context_limit,
+                context_limit,
             'stock':
-            context_stock_exchange,
+                context_stock_exchange,
             'formatting_date':
-            context_date_of_formatting,
+                context_date_of_formatting,
             'amount_of_premium':
-            decimal.Decimal(context_fee).quantize(
-                decimal.Decimal('0.00000001'),
-                rounding=decimal.ROUND_DOWN).normalize(),
+                decimal.Decimal(context_fee).quantize(
+                    decimal.Decimal('0.00000001'),
+                    rounding=decimal.ROUND_DOWN).normalize(),
             'status':
-            policy_status_tag,
+                policy_status_tag,
             'numstatus':
-            policy_status_numerical_value,
+                policy_status_numerical_value,
             'sosexists':
-            sos,
+                sos,
             'expired_soon':
-            expired_soon,
+                expired_soon,
             'days_left':
-            days_left
+                days_left
         }
         logger.debug(context_policies)
         contextPolicy.append(context_policies)
-
 
     stock_exchange_tags = set()
     for stock_exchange in stock_exchange_ids:
@@ -613,7 +611,7 @@ def dashboard(request):
         for policy in contextPolicy:
             if policy['stock'] == current_stock_exchange and (
                     policy['numstatus'] == 1
-                    or policy['numstatus'] == 2):  
+                    or policy['numstatus'] == 2):
                 amount_of_holdings += float(policy['limit'])
         user_limit_information = {
             'stock_exchange': current_stock_exchange,
