@@ -1,9 +1,9 @@
-
 from django.models import Model
+
 
 class Payment(Model):
     is_paid = BooleanField(default=False)
-    payment_agent = CharField(max_length=30)    
+    payment_agent = CharField(max_length=30)
 
     def get_payment_agent(self):
 
